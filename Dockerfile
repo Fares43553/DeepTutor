@@ -109,7 +109,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
     # Default ports (can be overridden)
     BACKEND_PORT=8001 \
-    FRONTEND_PORT=3782
+    FRONTEND_PORT=${PORT}
 
 WORKDIR /app
 
@@ -280,8 +280,8 @@ echo "🚀 Starting DeepTutor"
 echo "============================================"
 
 # Set default ports if not provided
-export BACKEND_PORT=${BACKEND_PORT:-8001}
-export FRONTEND_PORT=${FRONTEND_PORT:-3782}
+export BACKEND_PORT=8001
+export FRONTEND_PORT=${PORT}
 
 echo "📌 Backend Port: ${BACKEND_PORT}"
 echo "📌 Frontend Port: ${FRONTEND_PORT}"
