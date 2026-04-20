@@ -265,7 +265,8 @@ find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
 # The standalone server reads PORT and HOSTNAME from environment variables
 export PORT=${FRONTEND_PORT}
 export HOSTNAME=0.0.0.0
-exec node /app/web/server.js
+cd /app/web
+exec node server.js
 EOF
 
 RUN sed -i 's/\r$//' /app/start-frontend.sh && chmod +x /app/start-frontend.sh
@@ -338,6 +339,7 @@ FROM production AS development
 COPY --from=frontend-builder /app/web/node_modules ./web/node_modules
 COPY --from=frontend-builder /app/web/package.json ./web/package.json
 COPY --from=frontend-builder /app/web/next.config.js ./web/next.config.js
+COPY web/ ./web/
 
 # Install development tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
