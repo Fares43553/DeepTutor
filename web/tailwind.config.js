@@ -11,6 +11,7 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         serif: ["var(--font-serif)", "Georgia", "serif"],
+        arabic: ["var(--font-arabic)", "system-ui", "sans-serif"],
       },
       colors: {
         border: "var(--border)",

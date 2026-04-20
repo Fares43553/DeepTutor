@@ -34,17 +34,21 @@ const webRoot = path.resolve(process.cwd());
 const localesRoot = path.join(webRoot, "locales");
 const enRoot = path.join(localesRoot, "en");
 const zhRoot = path.join(localesRoot, "zh");
+const arRoot = path.join(localesRoot, "ar");
 
-if (!fs.existsSync(enRoot) || !fs.existsSync(zhRoot)) {
-  console.error(`[i18n:parity] Missing locales roots: ${enRoot} or ${zhRoot}`);
+if (!fs.existsSync(enRoot) || !fs.existsSync(zhRoot) || !fs.existsSync(arRoot)) {
+  console.error(`[i18n:parity] Missing locales roots: ${enRoot}, ${zhRoot}, or ${arRoot}`);
   process.exit(2);
 }
 
 const enFiles = listJsonFiles(enRoot).map((p) => toRel(p, enRoot)).sort();
 const zhFiles = listJsonFiles(zhRoot).map((p) => toRel(p, zhRoot)).sort();
+const arFiles = listJsonFiles(arRoot).map((p) => toRel(p, arRoot)).sort();
 
 const missingInZh = enFiles.filter((f) => !zhFiles.includes(f));
 const extraInZh = zhFiles.filter((f) => !enFiles.includes(f));
+const missingInAr = enFiles.filter((f) => !arFiles.includes(f));
+const extraInAr = arFiles.filter((f) => !enFiles.includes(f));
 
 let ok = true;
 if (missingInZh.length) {
@@ -56,6 +60,16 @@ if (extraInZh.length) {
   ok = false;
   console.error("[i18n:parity] Extra zh files:");
   for (const f of extraInZh) console.error(`- ${f}`);
+}
+if (missingInAr.length) {
+  ok = false;
+  console.error("[i18n:parity] Missing ar files:");
+  for (const f of missingInAr) console.error(`- ${f}`);
+}
+if (extraInAr.length) {
+  ok = false;
+  console.error("[i18n:parity] Extra ar files:");
+  for (const f of extraInAr) console.error(`- ${f}`);
 }
 
 for (const rel of enFiles) {
@@ -79,6 +93,32 @@ for (const rel of enFiles) {
     }
     if (extraKeys.length) {
       console.error("  Extra zh keys:");
+      for (const k of extraKeys) console.error(`  - ${k}`);
+    }
+  }
+}
+
+for (const rel of enFiles) {
+  if (!arFiles.includes(rel)) continue;
+  const enPath = path.join(enRoot, rel);
+  const arPath = path.join(arRoot, rel);
+  const enJson = loadJson(enPath);
+  const arJson = loadJson(arPath);
+  const enKeys = new Set(flattenKeys(enJson));
+  const arKeys = new Set(flattenKeys(arJson));
+
+  const missingKeys = [...enKeys].filter((k) => !arKeys.has(k)).sort();
+  const extraKeys = [...arKeys].filter((k) => !enKeys.has(k)).sort();
+
+  if (missingKeys.length || extraKeys.length) {
+    ok = false;
+    console.error(`[i18n:parity] Key mismatch in ${rel}`);
+    if (missingKeys.length) {
+      console.error("  Missing ar keys:");
+      for (const k of missingKeys) console.error(`  - ${k}`);
+    }
+    if (extraKeys.length) {
+      console.error("  Extra ar keys:");
       for (const k of extraKeys) console.error(`  - ${k}`);
     }
   }

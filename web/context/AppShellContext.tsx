@@ -16,7 +16,7 @@ import {
   type Theme,
 } from "@/lib/theme";
 
-export type AppLanguage = "en" | "zh";
+export type AppLanguage = "en" | "zh" | "ar";
 
 export const ACTIVE_SESSION_STORAGE_KEY = "deeptutor.activeSessionId.tab";
 export const LANGUAGE_STORAGE_KEY = "deeptutor-language";
@@ -25,15 +25,47 @@ const ACTIVE_SESSION_EVENT = "deeptutor:active-session";
 const LANGUAGE_EVENT = "deeptutor:language";
 
 function normalizeLanguage(value: string | null | undefined): AppLanguage {
-  return value === "zh" ? "zh" : "en";
+  return value === "zh" ? "zh" : value === "ar" ? "ar" : "en";
+}
+
+/**
+ * Detect browser language from navigator.language
+ * Uses proper BCP 47 language tags (RFC 5646)
+ * Returns the best matching supported language
+ */
+function detectBrowserLanguage(): AppLanguage {
+  if (typeof navigator === "undefined") return "en";
+  
+  const browserLang = navigator.language?.toLowerCase() || "";
+  
+  // Handle Arabic variants (ar, ar-SA, ar-EG, etc.)
+  if (browserLang === "ar" || browserLang.startsWith("ar-")) {
+    return "ar";
+  }
+  
+  // Handle Chinese variants (zh-CN, zh-TW, zh, etc.)
+  if (browserLang === "zh" || 
+      browserLang.startsWith("zh-") ||
+      browserLang === "cn") {
+    return "zh";
+  }
+  
+  // Handle English (default for most locales)
+  return "en";
 }
 
 export function readStoredLanguage(): AppLanguage {
   if (typeof window === "undefined") return "en";
   try {
-    return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+    const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored) {
+      return normalizeLanguage(stored);
+    }
+    // If no stored preference, detect from browser
+    return detectBrowserLanguage();
   } catch {
-    return "en";
+    // localStorage may be unavailable, fallback to browser detection
+    return detectBrowserLanguage();
   }
 }
 

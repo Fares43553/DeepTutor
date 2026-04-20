@@ -251,15 +251,15 @@ const UserMessage = memo(function UserMessage({
   if (msg.content.startsWith("[Quiz Performance]")) return null;
 
   return (
-    <div key={`${msg.role}-${index}`} className="flex justify-end">
+    <div key={`${msg.role}-${index}`} className="user-message flex justify-end rtl:flex-row-reverse">
       <div className="max-w-[75%] space-y-1.5">
-        <div className="flex justify-end pr-1">
+        <div className="flex justify-end rtl:flex-row-reverse pr-1 rtl:pl-1 rtl:pr-0">
           <span className="text-[10px] tracking-wide text-[var(--muted-foreground)]">
             {getModeBadgeLabel(msg.capability)}
           </span>
         </div>
         {msg.attachments?.some((a) => a.type === "image") && (
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2 rtl:flex-row-reverse">
             {msg.attachments
               .filter((a) => a.type === "image" && a.base64)
               .map((a, ai) => (
@@ -276,18 +276,18 @@ const UserMessage = memo(function UserMessage({
               ))}
           </div>
         )}
-        <div className="rounded-2xl bg-[var(--secondary)] px-4 py-2.5 text-[14px] leading-relaxed text-[var(--foreground)] shadow-sm">
+        <div className="rounded-2xl bg-[var(--secondary)] px-4 py-2.5 text-[14px] leading-relaxed text-[var(--foreground)] shadow-sm rtl:text-right mixed-text">
           {(() => {
             const snap = msg.requestSnapshot;
             const hasNotebook = Boolean(snap?.notebookReferences?.length);
             const hasHistory = Boolean(snap?.historyReferences?.length);
             if (!hasNotebook && !hasHistory) return null;
             return (
-              <div className="mb-2 flex flex-wrap gap-1.5">
+              <div className="mb-2 flex flex-wrap gap-1.5 rtl:flex-row-reverse">
                 {snap?.notebookReferences?.map((ref) => (
                   <span
                     key={ref.notebook_id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--background)]/60 px-2 py-1 text-[11px] font-medium text-[var(--muted-foreground)]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--background)]/60 px-2 py-1 text-[11px] font-medium text-[var(--muted-foreground)] rtl:flex-row-reverse"
                   >
                     <BookOpen size={11} strokeWidth={1.8} />
                     {t("Notebook")} · {ref.record_ids.length} {t("records")}
@@ -296,7 +296,7 @@ const UserMessage = memo(function UserMessage({
                 {snap?.historyReferences?.map((sid) => (
                   <span
                     key={sid}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--background)]/60 px-2 py-1 text-[11px] font-medium text-[var(--muted-foreground)]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--background)]/60 px-2 py-1 text-[11px] font-medium text-[var(--muted-foreground)] rtl:flex-row-reverse"
                   >
                     <MessageSquare size={11} strokeWidth={1.8} />
                     {t("Chat History")}
@@ -305,7 +305,7 @@ const UserMessage = memo(function UserMessage({
               </div>
             );
           })()}
-          <div>{msg.content}</div>
+          <div className="mixed-text unicode-safe">{msg.content}</div>
         </div>
       </div>
     </div>

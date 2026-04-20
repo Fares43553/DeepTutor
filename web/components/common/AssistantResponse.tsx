@@ -15,7 +15,7 @@ export default function AssistantResponse({
   if (!hasVisibleMarkdownContent(content)) return null;
 
   return (
-    <div className={className}>
+    <div className={`${className} mixed-text rtl:text-right`}>
       <MarkdownRenderer
         content={content}
         variant="prose"

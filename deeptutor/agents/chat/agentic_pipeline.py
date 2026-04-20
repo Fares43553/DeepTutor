@@ -59,7 +59,15 @@ class AgenticChatPipeline:
     """Run chat as a 4-stage agentic pipeline."""
 
     def __init__(self, language: str = "en") -> None:
-        self.language = "zh" if language.lower().startswith("zh") else "en"
+        # Normalize language: support ar, zh, en (default to en if unsupported)
+        lang_lower = language.lower()
+        if lang_lower.startswith("zh"):
+            self.language = "zh"
+        elif lang_lower.startswith("ar"):
+            self.language = "ar"
+        else:
+            self.language = "en"
+        
         self.llm_config = get_llm_config()
         self.binding = getattr(self.llm_config, "binding", None) or "openai"
         self.model = getattr(self.llm_config, "model", None)
@@ -69,19 +77,80 @@ class AgenticChatPipeline:
         self.registry = get_tool_registry()
         self._usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
         # Prompts live in deeptutor/agents/chat/prompts/{zh,en}/agentic_chat.yaml
+        # For Arabic (ar), we fall back to English prompts with language injections.
         # so all user-visible / LLM-facing copy is editable without touching code.
         try:
+            prompt_language = "zh" if self.language == "zh" else "en"
             self._prompts: dict[str, Any] = (
                 get_prompt_manager().load_prompts(
                     module_name="chat",
                     agent_name="agentic_chat",
-                    language=self.language,
+                    language=prompt_language,
                 )
                 or {}
             )
         except Exception as exc:
             logger.warning("Failed to load agentic_chat prompts: %s", exc)
             self._prompts = {}
+
+    def _accumulate_usage(self, response: Any) -> None:
+        usage = getattr(response, "usage", None)
+        if usage:
+            self._usage["prompt_tokens"] += getattr(usage, "prompt_tokens", 0) or 0
+            self._usage["completion_tokens"] += getattr(usage, "completion_tokens", 0) or 0
+            self._usage["total_tokens"] += getattr(usage, "total_tokens", 0) or 0
+            self._usage["calls"] += 1
+
+    def _get_language_instruction(self) -> str:
+        """
+        Get an intelligent language instruction for the LLM.
+        
+        Instead of forcing a language, this detects the user's message language
+        and asks the LLM to respond in the same language.
+        """
+        from deeptutor.services.language_detection import get_language_instruction, detect_language
+        
+        # Convert internal language code to detection service format
+        ui_lang_map = {
+            "ar": "ar",
+            "zh": "zh",
+            "en": "en",
+        }
+        ui_language = ui_lang_map.get(self.language, "en")
+        
+        # In the actual pipeline, we'll detect the user message language
+        # For now, return a smart instruction that adapts to user language
+        return get_language_instruction("en", ui_language)
+
+    def _inject_language(self, system_prompt: str, context: UnifiedContext | None = None) -> str:
+        """
+        Inject smart language instruction into the system prompt.
+        
+        Detects the language of the user message and responds adaptively.
+        """
+        from deeptutor.services.language_detection import detect_language, get_language_instruction
+        
+        user_message = context.user_message if context else ""
+        detected_lang = detect_language(user_message) if user_message else "en"
+        
+        # Map to standard codes
+        detected_map = {
+            "ar": "ar", "zh": "zh", "en": "en",
+            "es": "es", "fr": "fr", "de": "de",
+            "ru": "ru", "ja": "ja", "ko": "ko",
+        }
+        detected_language = detected_map.get(detected_lang, "en")
+        
+        # Get the UI preference
+        ui_lang_map = {"ar": "ar", "zh": "zh"}
+        ui_language = ui_lang_map.get(self.language, "en")
+        
+        # Get smart instruction
+        instruction = get_language_instruction(detected_language, ui_language)
+        
+        if instruction:
+            return system_prompt + instruction
+        return system_prompt
 
     def _accumulate_usage(self, response: Any) -> None:
         usage = getattr(response, "usage", None)
@@ -301,7 +370,7 @@ class AgenticChatPipeline:
             observation_prompt = self._t("observing.user_intro")
             messages = self._build_messages(
                 context=context,
-                system_prompt=self._observing_system_prompt(enabled_tools),
+                system_prompt=self._observing_system_prompt(enabled_tools, context),
                 user_content=(
                     f"{observation_prompt}\n\n"
                     f"{self._labeled_block('Thinking', thinking_text)}\n\n"
@@ -367,7 +436,7 @@ class AgenticChatPipeline:
             )
             messages = self._build_messages(
                 context=context,
-                system_prompt=self._responding_system_prompt(enabled_tools),
+                system_prompt=self._responding_system_prompt(enabled_tools, context),
                 user_content=user_prompt,
             )
 
@@ -432,7 +501,7 @@ class AgenticChatPipeline:
             )
             messages = self._build_messages(
                 context=context,
-                system_prompt=self._responding_system_prompt([]),
+                system_prompt=self._responding_system_prompt([], context),
                 user_content=user_prompt,
             )
 
@@ -1098,12 +1167,13 @@ class AgenticChatPipeline:
             format="aliases",
             language=self.language,
         )
-        return self._t(
+        prompt = self._t(
             "acting.system",
             tool_list=tool_list or self._fallback_empty_tool_list(),
             tool_aliases=tool_aliases or self._fallback_empty_tool_list(),
             max_parallel_tools=MAX_PARALLEL_TOOL_CALLS,
         )
+        return self._inject_language(prompt, context)
 
     def _react_fallback_system_prompt(self, tool_table: str) -> str:
         return self._t("react_fallback.system", tool_table=tool_table)
@@ -1118,13 +1188,14 @@ class AgenticChatPipeline:
         )
         has_kb = "rag" in enabled_tools and bool(context.knowledge_bases)
         kb_hint = self._t("thinking.kb_hint") if has_kb else ""
-        return self._t(
+        prompt = self._t(
             "thinking.system",
             tool_list=tool_list or self._fallback_empty_tool_list(),
             kb_hint=kb_hint,
         )
+        return self._inject_language(prompt, context)
 
-    def _observing_system_prompt(self, enabled_tools: list[str]) -> str:
+    def _observing_system_prompt(self, enabled_tools: list[str], context: UnifiedContext) -> str:
         tool_list = self.registry.build_prompt_text(
             enabled_tools,
             format="list",
@@ -1132,13 +1203,14 @@ class AgenticChatPipeline:
         )
         has_rag = "rag" in enabled_tools
         rag_hint = self._t("observing.rag_hint") if has_rag else ""
-        return self._t(
+        prompt = self._t(
             "observing.system",
             tool_list=tool_list or self._fallback_empty_tool_list(),
             rag_hint=rag_hint,
         )
+        return self._inject_language(prompt, context)
 
-    def _responding_system_prompt(self, enabled_tools: list[str]) -> str:
+    def _responding_system_prompt(self, enabled_tools: list[str], context: UnifiedContext | None = None) -> str:
         tool_list = self.registry.build_prompt_text(
             enabled_tools,
             format="list",
@@ -1146,11 +1218,12 @@ class AgenticChatPipeline:
         )
         has_rag = "rag" in enabled_tools
         rag_hint = self._t("responding.rag_hint") if has_rag else ""
-        return self._t(
+        prompt = self._t(
             "responding.system",
             tool_list=tool_list or self._fallback_empty_tool_list(),
             rag_hint=rag_hint,
         )
+        return self._inject_language(prompt, context)
 
     def _acting_user_prompt(self, context: UnifiedContext, thinking_text: str) -> str:
         return self._t(

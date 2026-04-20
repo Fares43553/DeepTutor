@@ -533,3 +533,313 @@
 .session-pulse {
   animation: session-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ─── RTL Support ─── */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+html[dir="rtl"] * {
+  text-align: inherit;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-arabic), system-ui, sans-serif;
+}
+
+/* RTL: Lists */
+html[dir="rtl"] .prose ul {
+  list-position: inside;
+  margin-right: 1.5rem;
+  margin-left: 0;
+}
+
+html[dir="rtl"] .prose ol {
+  list-position: inside;
+  margin-right: 1.5rem;
+  margin-left: 0;
+}
+
+html[dir="rtl"] .prose li > ul,
+html[dir="rtl"] .prose li > ol {
+  margin-right: 1rem;
+  margin-left: 0;
+}
+
+/* RTL: Blockquotes */
+html[dir="rtl"] .prose blockquote {
+  border-right: 3px solid;
+  border-left: none;
+  padding-right: 1rem;
+  padding-left: 0;
+}
+
+/* RTL: Tables */
+html[dir="rtl"] .prose th,
+html[dir="rtl"] .prose td {
+  text-align: right;
+}
+
+/* RTL: Details */
+html[dir="rtl"] .prose details {
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+/* RTL: Definition lists */
+html[dir="rtl"] .prose dd {
+  margin-right: 1.5rem;
+  margin-left: 0;
+}
+
+/* RTL: Task lists */
+html[dir="rtl"] .prose li:has(> input[type="checkbox"]) {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .prose li > input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-left: 0;
+}
+
+/* RTL: General margin and padding flip */
+html[dir="rtl"] [class*="ml-"] {
+  margin-left: 0;
+  margin-right: var(--margin-value);
+}
+
+html[dir="rtl"] [class*="mr-"] {
+  margin-right: 0;
+  margin-left: var(--margin-value);
+}
+
+html[dir="rtl"] [class*="pl-"] {
+  padding-left: 0;
+  padding-right: var(--padding-value);
+}
+
+html[dir="rtl"] [class*="pr-"] {
+  padding-right: 0;
+  padding-left: var(--padding-value);
+}
+
+/* RTL: Text alignment */
+html[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+html[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+/* RTL: Chat bubbles and messages */
+html[dir="rtl"] [class*="chat-message"],
+html[dir="rtl"] [class*="message-container"],
+html[dir="rtl"] .assistant-message {
+  text-align: inherit;
+}
+
+html[dir="rtl"] .user-message {
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: 0.5rem;
+  padding-right: 1rem;
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .assistant-message {
+  margin-right: 0;
+  margin-left: auto;
+  padding-right: 0.5rem;
+  padding-left: 1rem;
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL: Icons and SVG elements */
+html[dir="rtl"] [class*="icon"],
+html[dir="rtl"] svg:not([class*="direction"]) {
+  transform: scaleX(-1);
+}
+
+/* Exception: Icons that should NOT flip */
+html[dir="rtl"] [class*="icon-no-flip"],
+html[dir="rtl"] [class*="icon-center"],
+html[dir="rtl"] .checkmark,
+html[dir="rtl"] .spinner,
+html[dir="rtl"] .arrow-up,
+html[dir="rtl"] .arrow-down {
+  transform: none;
+}
+
+/* RTL: Form elements */
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select {
+  direction: rtl;
+  text-align: right;
+  padding-right: 0.5rem;
+  padding-left: 0;
+}
+
+html[dir="rtl"] input::placeholder,
+html[dir="rtl"] textarea::placeholder {
+  text-align: right;
+}
+
+/* RTL: Buttons */
+html[dir="rtl"] button [class*="icon"] {
+  margin-left: 0.5rem;
+  margin-right: 0;
+  order: 2;
+}
+
+html[dir="rtl"] button {
+  flex-direction: row-reverse;
+}
+
+/* RTL: Sidebar and navigation */
+html[dir="rtl"] [class*="sidebar"],
+html[dir="rtl"] [class*="nav-bar"],
+html[dir="rtl"] [class*="left-panel"] {
+  right: 0;
+  left: auto;
+  border-right: none;
+  border-left: 1px solid;
+}
+
+html[dir="rtl"] [class*="right-panel"] {
+  left: 0;
+  right: auto;
+  border-left: none;
+  border-right: 1px solid;
+}
+
+/* RTL: Dropdown menus */
+html[dir="rtl"] [class*="dropdown"],
+html[dir="rtl"] [class*="menu"] {
+  right: 0;
+  left: auto;
+  text-align: right;
+}
+
+/* RTL: Position utilities */
+html[dir="rtl"] [class*="left-"],
+html[dir="rtl"] [class*="right-"] {
+  left: auto;
+  right: auto;
+}
+
+/* RTL: Mixed text bidirectional support */
+html[dir="rtl"] [class*="mixed-text"],
+html[dir="rtl"] .message-content {
+  unicode-bidi: plaintext;
+  word-break: break-word;
+}
+
+/* RTL: Code blocks should maintain LTR */
+html[dir="rtl"] code,
+html[dir="rtl"] pre,
+html[dir="rtl"] .code-block {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: bidi-override;
+}
+
+html[dir="rtl"] .prose code {
+  direction: ltr;
+  unicode-bidi: bidi-override;
+}
+
+/* RTL: Code blocks need special handling for proper display */
+html[dir="rtl"] code::first-letter {
+  unicode-bidi: bidi-override;
+  direction: ltr;
+}
+
+/* RTL: Inline code in mixed text */
+html[dir="rtl"] .mixed-text code,
+html[dir="rtl"] .message-content code {
+  direction: ltr;
+  unicode-bidi: bidi-override;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+/* RTL: Code blocks in prose should preserve LTR completely */
+html[dir="rtl"] .prose pre {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: bidi-override;
+}
+
+html[dir="rtl"] .prose pre code {
+  direction: ltr;
+  unicode-bidi: bidi-override;
+  display: block;
+}
+
+/* RTL: Tables */
+html[dir="rtl"] table {
+  text-align: right;
+}
+
+/* RTL: Links */
+html[dir="rtl"] a {
+  text-decoration: underline;
+}
+
+/* Mixed-text and Unicode support for bilingual content */
+.mixed-text {
+  unicode-bidi: plaintext;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  word-spacing: normal;
+}
+
+.unicode-safe {
+  unicode-bidi: plaintext;
+  word-wrap: break-word;
+}
+
+/* Enhanced bidirectional text handling */
+.bidirectional-text {
+  unicode-bidi: bidi-override;
+  direction: inherit;
+}
+
+/* Numbers in RTL text should still render correctly */
+html[dir="rtl"] .mixed-text {
+  unicode-bidi: plaintext;
+}
+
+html[dir="rtl"] .message-content {
+  unicode-bidi: plaintext;
+  word-break: break-word;
+}
+
+/* Arabic + English code handling */
+html[dir="rtl"] .code-inline {
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: bidi-override;
+  white-space: nowrap;
+}
+
+/* Email addresses and URLs in RTL should stay LTR */
+html[dir="rtl"] a[href] {
+  unicode-bidi: bidi-override;
+  direction: ltr;
+}
+
+/* Additional visual tweaks for better RTL/LTR mixing */
+@supports (hyphens: auto) {
+  .mixed-text {
+    hyphens: auto;
+  }
+  
+  html[dir="rtl"] .mixed-text {
+    hyphens: auto;
+  }
+}

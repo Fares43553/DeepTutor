@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Lora } from "next/font/google";
+import { Plus_Jakarta_Sans, Lora, Cairo } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/ThemeScript";
 import { AppShellProvider } from "@/context/AppShellContext";
@@ -17,6 +17,12 @@ const fontSerif = Lora({
   variable: "--font-serif",
 });
 
+const fontArabic = Cairo({
+  subsets: ["arabic"],
+  display: "swap",
+  variable: "--font-arabic",
+});
+
 export const metadata: Metadata = {
   title: "DeepTutor",
   description: "Agent-native intelligent learning companion",
@@ -28,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${fontSans.variable} ${fontSerif.variable}`}>
+    <html lang="en" dir="ltr" suppressHydrationWarning className={`${fontSans.variable} ${fontSerif.variable} ${fontArabic.variable}`}>
       <head>
         <ThemeScript />
       </head>
