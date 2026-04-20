@@ -135,12 +135,15 @@
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
+    /* Basic Fluid Typography Scale: adjust according to viewport width */
+    font-size: clamp(14px, 1rem + 0.25vw, 16px);
   }
 
   body {
     @apply antialiased;
     background: var(--background);
     color: var(--foreground);
+    touch-action: pan-x pan-y;
   }
 
   button,
@@ -294,8 +297,8 @@
 
 /* ─── Body text ─── */
 .prose p {
-  @apply mb-4;
-  line-height: 1.75;
+  @apply mb-5;
+  line-height: 1.85; /* Increased for mobile readability */
   color: var(--foreground);
 }
 

@@ -226,8 +226,9 @@ export default memo(function ChatComposer({
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
-    el.style.height = "28px";
-    const next = Math.max(el.scrollHeight, 28);
+    const baseHeight = window.innerWidth < 768 ? 44 : 28;
+    el.style.height = `${baseHeight}px`;
+    const next = Math.max(el.scrollHeight, baseHeight);
     const bounded = Math.min(next, 200);
     el.style.height = `${bounded}px`;
     el.style.overflowY = next > 200 ? "auto" : "hidden";
@@ -351,7 +352,7 @@ export default memo(function ChatComposer({
             </div>
           )}
 
-          <div className="px-4 pt-3.5 pb-2">
+          <div className="px-4 pt-4 pb-3 md:pt-3.5 md:pb-2">
             <ReferenceChips
               historySessions={selectedHistorySessions}
               notebookGroups={notebookReferenceGroups}
@@ -417,7 +418,7 @@ export default memo(function ChatComposer({
                 <button
                 ref={capBtnRef}
                 onClick={() => onSetCapMenuOpen((v) => !v)}
-                className={`inline-flex shrink-0 items-center gap-1.5 py-1.5 px-1 text-[12px] transition-colors ${
+                className={`inline-flex shrink-0 items-center justify-center gap-1.5 py-1.5 px-2 min-h-[44px] md:min-h-[32px] text-[12px] transition-colors ${
                   capMenuOpen
                     ? "text-[var(--foreground)]"
                     : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
@@ -436,7 +437,7 @@ export default memo(function ChatComposer({
                     <button
                       ref={toolBtnRef}
                       onClick={() => onSetToolMenuOpen((v) => !v)}
-                      className="inline-flex shrink-0 items-center gap-1 py-1 px-1.5 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1 py-1 px-2 min-h-[44px] md:min-h-[28px] text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
                     >
                       <Layers size={12} strokeWidth={1.7} />
                       {t("Sources")}
@@ -486,7 +487,7 @@ export default memo(function ChatComposer({
                     <button
                       ref={toolBtnRef}
                       onClick={() => onSetToolMenuOpen((v) => !v)}
-                      className="inline-flex shrink-0 items-center gap-1 py-1 px-1.5 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1 py-1 px-2 min-h-[44px] md:min-h-[28px] text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
                     >
                       <Sparkles size={12} strokeWidth={1.7} />
                       {t("Tools")}
@@ -535,7 +536,7 @@ export default memo(function ChatComposer({
                   <button
                     ref={refBtnRef}
                     onClick={() => onSetRefMenuOpen((v) => !v)}
-                    className="inline-flex shrink-0 items-center gap-1 py-1 px-1.5 text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
+                    className="inline-flex shrink-0 items-center justify-center gap-1 py-1 px-2 min-h-[44px] md:min-h-[28px] text-[11px] font-medium text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
                   >
                     <AtSign size={12} strokeWidth={1.7} />
                     {t("Reference")}
@@ -605,7 +606,7 @@ export default memo(function ChatComposer({
                   <button
                     type="button"
                     onClick={onCancelStreaming}
-                    className="group relative inline-flex h-[29px] w-[29px] shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-white shadow-[0_4px_12px_rgba(195,90,44,0.18)] transition-[background-color,box-shadow] hover:bg-[var(--primary)]/90 hover:shadow-[0_6px_16px_rgba(195,90,44,0.28)]"
+                    className="group relative inline-flex h-[44px] w-[44px] md:h-[29px] md:w-[29px] shrink-0 items-center justify-center rounded-full bg-[var(--primary)] text-white shadow-[0_4px_12px_rgba(195,90,44,0.18)] transition-[background-color,box-shadow] hover:bg-[var(--primary)]/90 hover:shadow-[0_6px_16px_rgba(195,90,44,0.28)]"
                     aria-label={t("Stop generating")}
                     title={t("Stop generating")}
                   >
@@ -627,10 +628,10 @@ export default memo(function ChatComposer({
                     type="button"
                     onClick={doSend}
                     disabled={!canSend}
-                    className="rounded-full bg-[var(--primary)] p-[7px] text-white shadow-[0_4px_12px_rgba(195,90,44,0.15)] transition-[transform,opacity,box-shadow] hover:shadow-[0_6px_16px_rgba(195,90,44,0.22)] disabled:opacity-25 disabled:shadow-none"
+                    className="rounded-full bg-[var(--primary)] flex items-center justify-center h-[44px] w-[44px] md:h-[32px] md:w-[32px] text-white shadow-[0_4px_12px_rgba(195,90,44,0.15)] transition-[transform,opacity,box-shadow] hover:shadow-[0_6px_16px_rgba(195,90,44,0.22)] disabled:opacity-25 disabled:shadow-none"
                     aria-label={t("Send")}
                   >
-                    <ArrowUp size={15} strokeWidth={2.5} />
+                    <ArrowUp size={16} strokeWidth={2.5} />
                   </button>
                 )}
               </div>
