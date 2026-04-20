@@ -146,5 +146,5 @@ export function initI18n(language?: unknown) {
  */
 export async function changeLanguage(language: AppLanguage): Promise<void> {
   await ensureLanguageLoaded(language);
-  return i18n.changeLanguage(language);
+  await i18n.changeLanguage(language);
 }
