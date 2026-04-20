@@ -93,9 +93,9 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # ============================================
-# Stage 3: Production Image
+# Stage 3: Base Final (Shared by Production and Development)
 # ============================================
-FROM python:3.11-slim AS production
+FROM python:3.11-slim AS base-final
 
 # Labels
 LABEL maintainer="DeepTutor Team" \
@@ -109,7 +109,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     NODE_ENV=production \
     # Default ports (can be overridden)
     BACKEND_PORT=8001 \
-    FRONTEND_PORT=${PORT}
+    FRONTEND_PORT=${PORT:-8080}
 
 WORKDIR /app
 
@@ -233,7 +233,7 @@ set -e
 
 # Get the backend port (default to 8001)
 BACKEND_PORT=${BACKEND_PORT:-8001}
-FRONTEND_PORT=${FRONTEND_PORT:-3782}
+FRONTEND_PORT=${FRONTEND_PORT:-8080}
 
 # Determine the API base URL with multiple fallback options
 # Priority: NEXT_PUBLIC_API_BASE_EXTERNAL > NEXT_PUBLIC_API_BASE > auto-detect
@@ -282,7 +282,7 @@ echo "============================================"
 
 # Set default ports if not provided
 export BACKEND_PORT=8001
-export FRONTEND_PORT=${PORT}
+export FRONTEND_PORT=${PORT:-8080}
 
 echo "📌 Backend Port: ${BACKEND_PORT}"
 echo "📌 Frontend Port: ${FRONTEND_PORT}"
@@ -321,18 +321,18 @@ EOF
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Expose ports
-EXPOSE 8001 3782
+EXPOSE 8001 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT} || exit 1
+    CMD curl -f http://localhost:${FRONTEND_PORT} || exit 1
 # Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # ============================================
 # Stage 4: Development Image (Optional)
 # ============================================
-FROM production AS development
+FROM base-final AS development
 
 # Re-add full node_modules for development hot-reload
 # (Production uses standalone output which doesn't include full node_modules)
@@ -389,4 +389,10 @@ EOF
 RUN sed -i 's/\r$//' /etc/supervisor/conf.d/deeptutor.conf
 
 # Development ports
-EXPOSE 8001 3782
+EXPOSE 8001 8080
+
+# ============================================
+# Stage 5: Production Image (DEFAULT)
+# ============================================
+# This stage is last so it is the default build target
+FROM base-final AS production
